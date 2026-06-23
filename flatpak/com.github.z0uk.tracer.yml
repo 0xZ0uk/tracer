@@ -13,17 +13,44 @@ finish-args:
   - --filesystem=home
 
 modules:
-  # ── Python dependency: vtracer (prebuilt wheel, fetched at source time) ──
+  # ── Python dependency: vtracer (prebuilt manylinux wheel) ──────────
   - name: python3-vtracer
     buildsystem: simple
     build-commands:
-      - pip3 install --prefix=/app vtracer-*.whl
+      # --find-links scans all local wheels; pip auto-selects the one
+      # compatible with the Python version in the GNOME runtime.
+      - pip3 install --prefix=/app --no-index --find-links=/run/build/python3-vtracer vtracer
     sources:
+      # All manylinux x86_64 wheels for Python 3.8 through 3.14
+      # Pip picks the right one at build time.
       - type: file
-        only-arches:
-          - x86_64
+        only-arches: [x86_64]
+        url: https://files.pythonhosted.org/packages/fe/c0/4c2203fee7422618a4b74fa335444fc5514ff07ddac2a672da37d2b23016/vtracer-0.6.15-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: 95db13fa005bc9cacd8f6fd7fcfa2fce47529cf78af35f709993413e140f1f6e
+      - type: file
+        only-arches: [x86_64]
         url: https://files.pythonhosted.org/packages/cd/7d/93d5382cc3e058d8f30b510db629d74a38f34049da878fae084ed996ed9e/vtracer-0.6.15-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
         sha256: b340b2fcf1049e6a036c06b4c78fb0e39e28bd8e220f8d4dff6abd34dee100ea
+      - type: file
+        only-arches: [x86_64]
+        url: https://files.pythonhosted.org/packages/ff/72/b12534f2d335448bc98504610c8d57520e530dab840251871a72cbb6c227/vtracer-0.6.15-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: cd19743a8dc3a67e1284f5f227c1483197ec3988687c53b5a1b3c52912db2a9e
+      - type: file
+        only-arches: [x86_64]
+        url: https://files.pythonhosted.org/packages/32/fd/918aa2f9fd0d2fd83dc66221885d8c0f1ee1b3945d304d84a094c837953b/vtracer-0.6.15-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: d473452b53b359504aa229d944bbc24e609e5a01ee4766a99f8573f476918dd0
+      - type: file
+        only-arches: [x86_64]
+        url: https://files.pythonhosted.org/packages/62/47/9af590d5319433f976baaa9ae1bdd309a68ea5201403246a48d2ba827e39/vtracer-0.6.15-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: e254fd9a9780d684d17772dc9c243a8739ab15c2f55455d4b96f2db7987b86e8
+      - type: file
+        only-arches: [x86_64]
+        url: https://files.pythonhosted.org/packages/24/2d/f6ab93cbb7d6d4f643f056a20a4be272907345019e4ef2d368314b282b13/vtracer-0.6.15-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: c4964d5a6ad58debf753a270ad1cd58dc8ee65ddbf319da20e83aab481f63c66
+      - type: file
+        only-arches: [x86_64]
+        url: https://files.pythonhosted.org/packages/58/27/36d031aeccbe40aeacd00bc1eccb240c744c321979dcfc3248ce85c7647a/vtracer-0.6.15-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: fc61b871e7528df78751b76a129ef537a92c8e84187e0b9d122000bb54ad5df9
 
   # ── The app itself ────────────────────────────────────────────────
   - name: tracer
