@@ -13,11 +13,17 @@ finish-args:
   - --filesystem=home
 
 modules:
-  # ── Python dependency: vtracer (prebuilt manylinux wheel) ──────────
+  # ── Python dependency: vtracer (prebuilt wheel, fetched at source time) ──
   - name: python3-vtracer
     buildsystem: simple
     build-commands:
-      - pip3 install --prefix=/app vtracer
+      - pip3 install --prefix=/app vtracer-*.whl
+    sources:
+      - type: file
+        only-arches:
+          - x86_64
+        url: https://files.pythonhosted.org/packages/cd/7d/93d5382cc3e058d8f30b510db629d74a38f34049da878fae084ed996ed9e/vtracer-0.6.15-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: b340b2fcf1049e6a036c06b4c78fb0e39e28bd8e220f8d4dff6abd34dee100ea
 
   # ── The app itself ────────────────────────────────────────────────
   - name: tracer
