@@ -169,21 +169,27 @@ class VtracerWindow(Adw.ApplicationWindow):
     def _on_open_clicked(self, _btn):
         dialog = Gtk.FileDialog.new()
         dialog.set_title("Select Image")
-        filters = Gtk.FileFilter()
-        filters.set_name("Images")
-        for ext in Converter.supported_input_extensions():
-            filters.add_pattern(f"*{ext}")
-        dialog.set_default_filter(filters)
 
-        # All-image filter
-        all_filter = Gtk.FileFilter()
-        all_filter.set_name("All Images")
-        all_filter.add_mime_type("image/png")
-        all_filter.add_mime_type("image/jpeg")
-        all_filter.add_mime_type("image/webp")
-        all_filter.add_mime_type("image/tiff")
-        all_filter.add_mime_type("image/bmp")
-        dialog.add_filter(all_filter)
+        # Build filter list
+        filter_images = Gtk.FileFilter()
+        filter_images.set_name("Images")
+        for ext in Converter.supported_input_extensions():
+            filter_images.add_pattern(f"*{ext}")
+
+        filter_all = Gtk.FileFilter()
+        filter_all.set_name("All Images")
+        filter_all.add_mime_type("image/png")
+        filter_all.add_mime_type("image/jpeg")
+        filter_all.add_mime_type("image/webp")
+        filter_all.add_mime_type("image/tiff")
+        filter_all.add_mime_type("image/bmp")
+
+        filter_list = Gio.ListStore.new(Gtk.FileFilter)
+        filter_list.append(filter_images)
+        filter_list.append(filter_all)
+
+        dialog.set_filters(filter_list)
+        dialog.set_default_filter(filter_images)
 
         dialog.open(callback=self._on_open_finished)
 

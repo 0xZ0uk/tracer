@@ -39,6 +39,9 @@ class Converter:
     VALID_MODES = ["pixel", "polygon", "spline"]
     VALID_HIERARCHICAL = ["stacked", "cutout"]
 
+    # Params that vtracer expects as int (Adw.SpinRow returns float)
+    INT_PARAMS = {"color_precision", "filter_speckle", "layer_difference", "path_precision", "max_iterations"}
+
     PRESETS = {
         "custom": {},
         "bw": {
@@ -116,6 +119,10 @@ class Converter:
         params.update(overrides)
         # Strip None values so vtracer uses its defaults
         clean = {k: v for k, v in params.items() if v is not None}
+        # Coerce types: SpinRow returns float, but vtracer expects int for some params
+        for k, v in clean.items():
+            if k in self.INT_PARAMS and v is not None:
+                clean[k] = int(v)
 
         try:
             vtracer.convert_image_to_svg_py(
