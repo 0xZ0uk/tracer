@@ -13,11 +13,13 @@ __all__ = ["Converter", "ConversionResult"]
 class ConversionResult:
     """Result of a single conversion."""
 
-    def __init__(self, success: bool, input_path: str, output_path: str = "", error: str = ""):
+    def __init__(self, success: bool, input_path: str, output_path: str = "",
+                 error: str = "", optimization_msg: str = ""):
         self.success = success
         self.input_path = input_path
         self.output_path = output_path
         self.error = error
+        self.optimization_msg = optimization_msg
 
 
 class Converter:
@@ -161,14 +163,25 @@ class Converter:
         return t is not None and t.is_alive()
 
     def convert_async(self, input_path: str, output_path: str,
-                      on_done=None, **overrides):
+                      on_done=None, optimize=False, on_status=None,
+                      **overrides):
         """Start a conversion in a background thread.
 
         If a conversion is already running, this is a no-op.
-        Calls ``on_done(result)`` on the main thread via ``GLib.idle_add``.
-        The callback is *not* invoked if ``cancel()`` was called before it
-        fires.
+        When ``optimize=True`` and the conversion succeeds, the optimizer runs
+        in the same background thread before the callback fires.
+        Calls ``on_status(msg)`` and ``on_done(result)`` on the main thread
+        via ``GLib.idle_add``.
+        The callbacks are *not* invoked if ``cancel()`` was called before they
+        would fire.
         """
+
+        def _emit(fn, *args):
+            """Call *fn(args)* on the main thread, unless cancelled."""
+            if self._cancelled or fn is None:
+                return
+            GLib.idle_add(lambda: fn(*args), priority=GLib.PRIORITY_DEFAULT)
+
         with self._lock:
             if self.busy:
                 return
@@ -178,13 +191,26 @@ class Converter:
             params.update(overrides)
 
             def _run():
+                if on_status:
+                    _emit(on_status, "Converting…")
                 result = self.convert_sync(input_path, output_path, **params)
                 if self._cancelled:
                     return
-                GLib.idle_add(
-                    lambda: on_done(result) if on_done else None,
-                    priority=GLib.PRIORITY_DEFAULT,
-                )
+
+                if result.success and optimize:
+                    if on_status:
+                        _emit(on_status, "Optimizing…")
+                    try:
+                        from optimizer import optimize_svg_file
+                        ok, msg = optimize_svg_file(result.output_path)
+                        if ok:
+                            result.optimization_msg = msg
+                        else:
+                            result.error = msg
+                    except Exception as e:
+                        result.error = str(e)
+
+                _emit(on_done, result)
 
             self._thread = threading.Thread(target=_run, daemon=True)
             self._thread.start()

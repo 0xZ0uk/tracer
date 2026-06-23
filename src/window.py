@@ -17,6 +17,8 @@ __all__ = ["VtracerWindow"]
 class VtracerWindow(Adw.ApplicationWindow):
     """The application's main window."""
 
+    STATUS_IDLE = "Drop an image or click Open to start"
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -26,6 +28,7 @@ class VtracerWindow(Adw.ApplicationWindow):
         self._converter = Converter()
         self._current_image_path = None
         self._last_svg_path = None
+        self._pulse_id = None
 
         self._build_ui()
         self._setup_drag_drop()
@@ -34,11 +37,9 @@ class VtracerWindow(Adw.ApplicationWindow):
     # ── UI construction ──────────────────────────────────────────────
 
     def _build_ui(self):
-        # Toast overlay at the root
         self._toast_overlay = Adw.ToastOverlay.new()
         self.set_content(self._toast_overlay)
 
-        # Main box
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self._toast_overlay.set_child(main_box)
 
@@ -46,7 +47,7 @@ class VtracerWindow(Adw.ApplicationWindow):
         header = Adw.HeaderBar()
         main_box.append(header)
 
-        # App menu button (gear)
+        # Menu
         menu = Gtk.MenuButton()
         menu.set_icon_name("open-menu-symbolic")
         menu.set_tooltip_text("Menu")
@@ -98,7 +99,7 @@ class VtracerWindow(Adw.ApplicationWindow):
         scroll.set_child(self._settings)
         self._content_box.append(scroll)
 
-        # Status bar at bottom
+        # ── Status bar ──────────────────────────────────────────────
         status_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         status_bar.set_margin_start(8)
         status_bar.set_margin_end(8)
@@ -106,12 +107,20 @@ class VtracerWindow(Adw.ApplicationWindow):
         status_bar.set_margin_bottom(4)
         main_box.append(status_bar)
 
-        self._status_label = Gtk.Label(label="Drop an image or click Open to start")
+        # Status label — fills remaining space
+        self._status_label = Gtk.Label(label=self.STATUS_IDLE)
         self._status_label.set_hexpand(True)
         self._status_label.set_xalign(0.0)
         self._status_label.add_css_class("dim-label")
         status_bar.append(self._status_label)
 
+        # Progress bar — narrow, shown during conversion
+        self._progress_bar = Gtk.ProgressBar()
+        self._progress_bar.set_visible(False)
+        self._progress_bar.set_size_request(120, -1)
+        status_bar.append(self._progress_bar)
+
+        # Convert button
         self._convert_btn = Gtk.Button(label="Convert → SVG")
         self._convert_btn.add_css_class("suggested-action")
         self._convert_btn.set_sensitive(False)
@@ -148,16 +157,13 @@ class VtracerWindow(Adw.ApplicationWindow):
 
     def _connect_settings(self):
         self._settings.connect("params-changed", self._on_params_changed)
-        # Apply preset on change: update converter params
         self._on_params_changed()
 
     def _on_params_changed(self, *_args):
         values = self._settings.get_values()
-        # Handle preset selection
         preset = values.pop("_preset", None)
         if preset and preset != "custom":
             self._converter.apply_preset(preset)
-            # Read back the preset values into the UI
             current = self._converter.get_params()
             self._settings.set_values(**current)
             self._settings.set_values(_preset=preset)
@@ -170,7 +176,6 @@ class VtracerWindow(Adw.ApplicationWindow):
         dialog = Gtk.FileDialog.new()
         dialog.set_title("Select Image")
 
-        # Build filter list
         filter_images = Gtk.FileFilter()
         filter_images.set_name("Images")
         for ext in Converter.supported_input_extensions():
@@ -190,7 +195,6 @@ class VtracerWindow(Adw.ApplicationWindow):
 
         dialog.set_filters(filter_list)
         dialog.set_default_filter(filter_images)
-
         dialog.open(callback=self._on_open_finished)
 
     def _on_open_finished(self, dialog, result):
@@ -208,6 +212,26 @@ class VtracerWindow(Adw.ApplicationWindow):
         self._status_label.set_text(f"Loaded: {Path(path).name}")
         self._last_svg_path = None
 
+    # ── conversion (all work in background thread) ──────────────────
+
+    def _start_pulse(self):
+        self._progress_bar.set_visible(True)
+        self._progress_bar.set_fraction(0.0)
+
+        def _pulse():
+            if not self._progress_bar.get_visible():
+                return False
+            self._progress_bar.pulse()
+            return True
+
+        self._pulse_id = GLib.timeout_add(100, _pulse)
+
+    def _stop_pulse(self):
+        self._progress_bar.set_visible(False)
+        if self._pulse_id is not None:
+            GLib.source_remove(self._pulse_id)
+            self._pulse_id = None
+
     def _on_convert_clicked(self, _btn):
         if not self._current_image_path:
             return
@@ -216,60 +240,48 @@ class VtracerWindow(Adw.ApplicationWindow):
             self._current_image_path,
             output_dir=str(Path(self._current_image_path).parent),
         )
-        # Make it unique-ish if same name exists
         output_path = self._unique_path(output_path)
 
-        self._convert_btn.set_sensitive(False)
-        self._convert_btn.set_label("Converting…")
-        self._status_label.set_text("Converting…")
-
-        # Read current values from settings
+        # Read settings
         values = self._settings.get_values()
         values.pop("_preset", None)
-        self._do_optimize = values.pop("_optimize", False)
+        do_optimize = values.pop("_optimize", False)
 
+        # Lock UI
+        self._convert_btn.set_sensitive(False)
+        self._convert_btn.set_label("Working…")
+        self._start_pulse()
+
+        # All work (vtracer + optional scour) happens in the background
+        # thread. on_status updates the UI via GLib.idle_add.
         self._converter.convert_async(
             self._current_image_path,
             output_path,
             on_done=self._on_conversion_done,
+            optimize=do_optimize,
+            on_status=self._on_status_update,
             **values,
         )
 
+    def _on_status_update(self, msg: str):
+        """Called from the background thread via idle_add."""
+        self._status_label.set_text(msg)
+
     def _on_conversion_done(self, result):
-        if result.success and self._do_optimize:
-            self._do_optimize = False
-            self._optimize_svg(result)
-        else:
-            self._conversion_finished(result)
-
-    def _optimize_svg(self, result):
-        self._status_label.set_text("Optimizing SVG…")
-        self._convert_btn.set_label("Optimizing…")
-
-        from optimizer import optimize_svg_file
-
-        ok, msg = optimize_svg_file(result.output_path)
-        if ok:
-            result.success = True
-            # Re-load preview with optimized SVG
-            self._preview.set_result_svg(result.output_path)
-            self._status_label.set_text(
-                f"{Path(result.output_path).name}  —  {msg}"
-            )
-        else:
-            result.error = msg
-        self._conversion_finished(result)
-
-    def _conversion_finished(self, result):
+        """Called from the background thread via idle_add."""
+        self._stop_pulse()
         self._convert_btn.set_sensitive(True)
         self._convert_btn.set_label("Convert → SVG")
 
         if result.success:
             self._last_svg_path = result.output_path
             self._preview.set_result_svg(result.output_path)
-            if not self._status_label.get_text().startswith(
-                Path(result.output_path).name
-            ):
+
+            if result.optimization_msg:
+                self._status_label.set_text(
+                    f"{Path(result.output_path).name}  —  {result.optimization_msg}"
+                )
+            else:
                 self._status_label.set_text(
                     f"Converted: {Path(result.output_path).name}"
                 )
@@ -286,7 +298,6 @@ class VtracerWindow(Adw.ApplicationWindow):
 
     @staticmethod
     def _unique_path(path: str) -> str:
-        """If the path exists, append a counter before the extension."""
         p = Path(path)
         if not p.exists():
             return path
