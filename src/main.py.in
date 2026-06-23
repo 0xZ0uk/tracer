@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+
+"""VTracer GTK entry point — processed by meson to install as /usr/bin/vtracer-gtk."""
+
+import sys
+import os
+
+
+def _setup_paths():
+    """Add the installed module directory to sys.path."""
+    # In the Flatpak sandbox, pkgdatadir is where meson installs src/
+    pkgdatadir = "@pkgdatadir@"
+    moduledir = os.path.join(pkgdatadir, "src")
+
+    # Fallback: running from source tree
+    if not os.path.isdir(moduledir):
+        # Walk up from this script's location
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        for candidate in (
+            os.path.join(script_dir, "..", "share", "vtracer-gtk", "src"),
+            os.path.join(script_dir, "..", "src"),
+            os.path.join(os.getcwd(), "src"),
+        ):
+            candidate = os.path.abspath(candidate)
+            if os.path.isdir(candidate):
+                moduledir = candidate
+                break
+
+    if moduledir not in sys.path:
+        sys.path.insert(0, moduledir)
+
+
+if __name__ == "__main__":
+    _setup_paths()
+    from app import main
+    sys.exit(main())

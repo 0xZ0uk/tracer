@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.github.z0uk.vtracer-gtk</id>
+  <name>VTracer GTK</name>
+  <summary>Convert raster images to vector SVG graphics</summary>
+  <developer id="com.github.z0uk">
+    <name>Z0uk</name>
+  </developer>
+  <description>
+    <p>
+      A modern GTK4/libadwaita GUI wrapper for VTracer, the high-performance
+      raster-to-vector converter. VTracer can convert photographs, scans, and
+      pixel art into compact SVG vector files using an O(n) algorithm that
+      handles colored images (unlike Potrace which requires binarized input).
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Single image and batch folder conversion</li>
+      <li>Full control over VTracer parameters: color mode, corner threshold, filtering, spline fitting, and more</li>
+      <li>Built-in presets for black &amp; white, poster, and photo modes</li>
+      <li>Before/after image preview</li>
+      <li>Drag-and-drop support</li>
+    </ul>
+  </description>
+  <categories>
+    <category>Graphics</category>
+    <category>VectorGraphics</category>
+    <category>Utility</category>
+  </categories>
+  <url type="homepage">https://github.com/z0uk/vtracer-gtk</url>
+  <url type="bugtracker">https://github.com/z0uk/vtracer-gtk/issues</url>
+  <project_license>MIT</project_license>
+  <launchable type="desktop-id">com.github.z0uk.vtracer-gtk.desktop</launchable>
+  <releases>
+    <release version="0.1.0" date="2025-06-22" urgency="low">
+      <description>
+        <p>Initial release — single image conversion, batch mode, all VTracer parameters, before/after preview.</p>
+      </description>
+    </release>
+  </releases>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/z0uk/vtracer-gtk/main/data/screenshots/main-window.png</image>
+      <caption>Main window with image preview and settings panel</caption>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+</component>

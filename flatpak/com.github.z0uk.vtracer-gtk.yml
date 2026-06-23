@@ -1,0 +1,37 @@
+id: com.github.z0uk.vtracer-gtk
+runtime: org.gnome.Platform
+runtime-version: '47'
+sdk: org.gnome.Sdk
+
+command: vtracer-gtk
+
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --filesystem=home
+
+modules:
+  # ── Python dependency: vtracer (prebuilt manylinux wheel) ──────────
+  - name: python3-vtracer
+    buildsystem: simple
+    build-commands:
+      - pip3 install --prefix=/app vtracer
+
+  # ── The app itself ────────────────────────────────────────────────
+  - name: vtracer-gtk
+    buildsystem: meson
+    config-opts:
+      - --prefix=/app
+    sources:
+      - type: dir
+        path: ..
+        skip:
+          - flatpak
+          - .git
+          - __pycache__
+          - '*.pyc'
+          - build
+    post-install:
+      - python3 -c "import gi; gi.require_version('Gtk','4.0'); gi.require_version('Adw','1'); import vtracer; print('deps OK')"

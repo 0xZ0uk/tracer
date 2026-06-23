@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=VTracer GTK
+Summary=Convert raster images to vector SVG graphics
+Description=A GUI wrapper for VTracer to convert PNG/JPG images to scalable vector graphics
+Exec=vtracer-gtk
+Icon=com.github.z0uk.vtracer-gtk
+Terminal=false
+Type=Application
+Categories=Graphics;VectorGraphics;Utility;
+MimeType=image/png;image/jpeg;image/webp;
+StartupNotify=true
+X-GNOME-UsesNotifications=true

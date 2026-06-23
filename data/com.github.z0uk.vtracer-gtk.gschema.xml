@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema path="/com/github/z0uk/vtracer-gtk/" id="com.github.z0uk.vtracer-gtk">
+    <key name="colormode" type="s">
+      <default>"color"</default>
+      <summary>Color mode</summary>
+      <description>Color mode: "color" for true color, "bw" for binary black &amp; white.</description>
+    </key>
+    <key name="mode" type="s">
+      <default>"spline"</default>
+      <summary>Fitting mode</summary>
+      <description>Curve fitting mode: "pixel", "polygon", or "spline".</description>
+    </key>
+    <key name="hierarchical" type="s">
+      <default>"stacked"</default>
+      <summary>Hierarchical mode</summary>
+      <description>Clustering mode: "stacked" or "cutout".</description>
+    </key>
+    <key name="color-precision" type="i">
+      <default>6</default>
+      <summary>Color precision</summary>
+      <description>Number of significant bits per RGB channel (1-8).</description>
+    </key>
+    <key name="corner-threshold" type="d">
+      <default>60.0</default>
+      <summary>Corner threshold</summary>
+      <description>Minimum angle (degrees) to detect a corner (0-180).</description>
+    </key>
+    <key name="filter-speckle" type="i">
+      <default>4</default>
+      <summary>Filter speckle</summary>
+      <description>Discard patches smaller than this many pixels.</description>
+    </key>
+    <key name="layer-difference" type="i">
+      <default>0</default>
+      <summary>Gradient step</summary>
+      <description>Color difference between gradient layers (0-255).</description>
+    </key>
+    <key name="length-threshold" type="d">
+      <default>3.5</default>
+      <summary>Segment length</summary>
+      <description>Maximum segment length for iterative subdivision.</description>
+    </key>
+    <key name="splice-threshold" type="d">
+      <default>45.0</default>
+      <summary>Splice threshold</summary>
+      <description>Minimum angle (degrees) to splice a spline.</description>
+    </key>
+    <key name="path-precision" type="i">
+      <default>8</default>
+      <summary>Path precision</summary>
+      <description>Number of decimal places in SVG path coordinates.</description>
+    </key>
+    <key name="window-width" type="i">
+      <default>900</default>
+      <summary>Window width</summary>
+    </key>
+    <key name="window-height" type="i">
+      <default>650</default>
+      <summary>Window height</summary>
+    </key>
+    <key name="window-maximized" type="b">
+      <default>false</default>
+      <summary>Window maximized</summary>
+    </key>
+  </schema>
+</schemalist>
