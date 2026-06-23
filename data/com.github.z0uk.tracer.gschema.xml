@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema path="/com/github/z0uk/vtracer-gtk/" id="com.github.z0uk.vtracer-gtk">
+  <schema path="/com/github/z0uk/tracer/" id="com.github.z0uk.tracer">
     <key name="colormode" type="s">
       <default>"color"</default>
       <summary>Color mode</summary>

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 
-"""Main window — the primary UI layout for vtracer-gtk."""
+"""Main window — the primary UI layout for tracer."""
 
 from pathlib import Path
 

@@ -16,7 +16,7 @@ class VtracerApplication(Adw.Application):
 
     def __init__(self, **kwargs):
         super().__init__(
-            application_id="com.github.z0uk.vtracer-gtk",
+            application_id="com.github.z0uk.tracer",
             flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
             **kwargs,
         )
@@ -48,8 +48,8 @@ class VtracerApplication(Adw.Application):
             developer_name="Z0uk",
             license_type=Gtk.License.MIT,
             comments="Convert raster images to vector SVG graphics",
-            website="https://github.com/z0uk/vtracer-gtk",
-            issue_url="https://github.com/z0uk/vtracer-gtk/issues",
+            website="https://github.com/z0uk/tracer",
+            issue_url="https://github.com/z0uk/tracer/issues",
         )
         about.present(self._window)
 

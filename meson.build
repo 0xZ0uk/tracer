@@ -1,4 +1,4 @@
-project('vtracer-gtk',
+project('tracer',
   version: '0.1.0',
   meson_version: '>= 0.63.0',
   license: 'MIT',
@@ -16,7 +16,7 @@ install_subdir('src',
   exclude_files: ['main.py.in'],
 )
 
-# Process main.py.in → /app/bin/vtracer-gtk
+# Process main.py.in → /app/bin/tracer
 conf = configuration_data()
 conf.set('PYTHON', python.find_installation('python3').full_path())
 conf.set('VERSION', meson.project_version())
@@ -25,28 +25,28 @@ conf.set('pkgdatadir', pkgdatadir)
 
 configure_file(
   input: 'src/main.py.in',
-  output: 'vtracer-gtk',
+  output: 'tracer',
   configuration: conf,
   install_dir: get_option('bindir'),
 )
 
 # Desktop file
 install_data(
-  'data/com.github.z0uk.vtracer-gtk.desktop.in',
+  'data/com.github.z0uk.tracer.desktop.in',
   install_dir: join_paths(get_option('datadir'), 'applications'),
-  rename: ['com.github.z0uk.vtracer-gtk.desktop'],
+  rename: ['com.github.z0uk.tracer.desktop'],
 )
 
 desktop_utils = find_program('desktop-file-validate', required: false)
 if desktop_utils.found()
   test('Validate desktop file', desktop_utils,
-    args: [join_paths(meson.current_source_dir(), 'data', 'com.github.z0uk.vtracer-gtk.desktop.in')],
+    args: [join_paths(meson.current_source_dir(), 'data', 'com.github.z0uk.tracer.desktop.in')],
   )
 endif
 
 # AppStream metadata
 install_data(
-  'data/com.github.z0uk.vtracer-gtk.metainfo.xml',
+  'data/com.github.z0uk.tracer.metainfo.xml',
   install_dir: join_paths(get_option('datadir'), 'metainfo'),
 )
 
@@ -54,13 +54,13 @@ appstreamcli = find_program('appstreamcli', required: false)
 if appstreamcli.found()
   test('Validate AppStream file', appstreamcli,
     args: ['validate', '--no-net', '--explain',
-           join_paths(meson.current_source_dir(), 'data', 'com.github.z0uk.vtracer-gtk.metainfo.xml')],
+           join_paths(meson.current_source_dir(), 'data', 'com.github.z0uk.tracer.metainfo.xml')],
   )
 endif
 
 # GSettings schema
 install_data(
-  'data/com.github.z0uk.vtracer-gtk.gschema.xml',
+  'data/com.github.z0uk.tracer.gschema.xml',
   install_dir: join_paths(get_option('datadir'), 'glib-2.0', 'schemas'),
 )
 
@@ -73,7 +73,7 @@ endif
 
 # Icon
 install_data(
-  'data/icons/com.github.z0uk.vtracer-gtk.svg',
+  'data/icons/com.github.z0uk.tracer.svg',
   install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable', 'apps'),
 )
 

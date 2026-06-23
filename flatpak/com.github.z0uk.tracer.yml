@@ -1,9 +1,9 @@
-id: com.github.z0uk.vtracer-gtk
+id: com.github.z0uk.tracer
 runtime: org.gnome.Platform
 runtime-version: '47'
 sdk: org.gnome.Sdk
 
-command: vtracer-gtk
+command: tracer
 
 finish-args:
   - --share=ipc
@@ -20,7 +20,7 @@ modules:
       - pip3 install --prefix=/app vtracer
 
   # ── The app itself ────────────────────────────────────────────────
-  - name: vtracer-gtk
+  - name: tracer
     buildsystem: meson
     config-opts:
       - --prefix=/app

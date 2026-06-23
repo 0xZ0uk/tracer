@@ -1,8 +1,8 @@
-# vtracer-gtk
+# tracer
 
 A modern GTK4 + libadwaita GUI for [VTracer](https://github.com/visioncortex/vtracer) — convert raster images (PNG, JPG) to vector SVG graphics.
 
-![screenshot](data/icons/com.github.z0uk.vtracer-gtk.svg)
+![screenshot](data/icons/com.github.z0uk.tracer.svg)
 
 ## Features
 
@@ -19,8 +19,8 @@ A modern GTK4 + libadwaita GUI for [VTracer](https://github.com/visioncortex/vtr
 
 ```sh
 flatpak install org.gnome.Platform//47 org.gnome.Sdk//47
-cd vtracer-gtk
-flatpak-builder build flatpak/com.github.z0uk.vtracer-gtk.yml --install
+cd tracer
+flatpak-builder build flatpak/com.github.z0uk.tracer.yml --install
 ```
 
 ### Local

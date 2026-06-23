@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.github.z0uk.vtracer-gtk</id>
+  <id>com.github.z0uk.tracer</id>
   <name>VTracer GTK</name>
   <summary>Convert raster images to vector SVG graphics</summary>
   <developer id="com.github.z0uk">
@@ -27,10 +27,10 @@
     <category>VectorGraphics</category>
     <category>Utility</category>
   </categories>
-  <url type="homepage">https://github.com/z0uk/vtracer-gtk</url>
-  <url type="bugtracker">https://github.com/z0uk/vtracer-gtk/issues</url>
+  <url type="homepage">https://github.com/z0uk/tracer</url>
+  <url type="bugtracker">https://github.com/z0uk/tracer/issues</url>
   <project_license>MIT</project_license>
-  <launchable type="desktop-id">com.github.z0uk.vtracer-gtk.desktop</launchable>
+  <launchable type="desktop-id">com.github.z0uk.tracer.desktop</launchable>
   <releases>
     <release version="0.1.0" date="2025-06-22" urgency="low">
       <description>
@@ -40,7 +40,7 @@
   </releases>
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/z0uk/vtracer-gtk/main/data/screenshots/main-window.png</image>
+      <image>https://raw.githubusercontent.com/z0uk/tracer/main/data/screenshots/main-window.png</image>
       <caption>Main window with image preview and settings panel</caption>
     </screenshot>
   </screenshots>
