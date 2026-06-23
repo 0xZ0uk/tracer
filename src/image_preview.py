@@ -138,6 +138,8 @@ class PreviewArea(Gtk.Box):
 
         # Try librsvg to render SVG -> Cairo surface -> GdkPixbuf
         try:
+            import gi
+            gi.require_version('Rsvg', '2.0')
             from gi.repository import Rsvg
             handle = Rsvg.Handle.new_from_file(filepath)
             dims = handle.get_dimensions()

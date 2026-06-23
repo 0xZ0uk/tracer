@@ -3,7 +3,6 @@
 """VTracer integration — wraps the vtracer Python bindings and handles threading."""
 
 import threading
-import os
 from pathlib import Path
 
 from gi.repository import GLib
@@ -22,16 +21,20 @@ class ConversionResult:
 
 
 class Converter:
-    """Wraps vtracer.convert_image_to_svg_py with async callbacks and parameter management."""
+    """Wraps vtracer.convert_image_to_svg_py with async callbacks and parameter management.
+
+    Only one conversion runs at a time. A ``busy`` property and a
+    ``finished`` signal (via on_done callback) let callers coordinate.
+    """
 
     # Valid parameter ranges
     PARAM_RANGES = {
         "color_precision": (1, 8, 1),
-        "corner_threshold": (0.0, 180.0, 0.5),
+        "corner_threshold": (0, 180, 1),
         "filter_speckle": (0, 200, 1),
         "layer_difference": (1, 255, 1),
         "length_threshold": (0.0, 50.0, 0.1),
-        "splice_threshold": (0.0, 180.0, 0.5),
+        "splice_threshold": (0, 180, 1),
         "path_precision": (0, 12, 1),
     }
 
@@ -76,8 +79,11 @@ class Converter:
 
     def __init__(self):
         self._params = self._default_params()
-        self._conversion_thread = None
+        self._lock = threading.Lock()
+        self._thread = None
         self._cancelled = False
+
+    # ── parameter management ────────────────────────────────────────
 
     def _default_params(self) -> dict:
         return {
@@ -95,34 +101,32 @@ class Converter:
         }
 
     def set_params(self, **kwargs):
-        """Update conversion parameters."""
         self._params.update(kwargs)
 
     def get_params(self) -> dict:
-        """Return current parameters dict (copy)."""
         return dict(self._params)
 
     def get_param(self, key: str):
         return self._params.get(key)
 
     def apply_preset(self, preset_name: str):
-        """Apply a named preset. 'custom' resets to defaults."""
         if preset_name == "custom":
             self._params = self._default_params()
         elif preset_name in self.PRESETS:
             self._params.update(self.PRESETS[preset_name])
 
-    # --- Sync conversion (for batch/simple use) ---
+    # ── sync conversion ─────────────────────────────────────────────
 
-    def convert_sync(self, input_path: str, output_path: str, **overrides) -> ConversionResult:
+    def convert_sync(self, input_path: str, output_path: str,
+                     **overrides) -> ConversionResult:
         """Run conversion synchronously in the calling thread."""
         import vtracer
 
         params = dict(self._params)
         params.update(overrides)
-        # Strip None values so vtracer uses its defaults
+        # Strip None so vtracer uses its internal defaults
         clean = {k: v for k, v in params.items() if v is not None}
-        # Coerce types: SpinRow returns float, but vtracer expects int for some params
+        # Coerce types: SpinRow returns float, vtracer expects int for some
         for k, v in clean.items():
             if k in self.INT_PARAMS and v is not None:
                 clean[k] = int(v)
@@ -146,32 +150,48 @@ class Converter:
                 error=str(e),
             )
 
-    # --- Async conversion (for single-image with UI callback) ---
+    # ── async conversion (single-flight, thread-safe) ───────────────
+
+    @property
+    def busy(self) -> bool:
+        """True if a conversion is currently running."""
+        t = self._thread
+        return t is not None and t.is_alive()
 
     def convert_async(self, input_path: str, output_path: str,
                       on_done=None, **overrides):
-        """Run conversion in a background thread. Calls ``on_done(result)`` on the main thread."""
-        self._cancelled = False
-        params = dict(self._params)
-        params.update(overrides)
+        """Start a conversion in a background thread.
 
-        def _run():
-            result = self.convert_sync(input_path, output_path, **params)
-            if self._cancelled:
+        If a conversion is already running, this is a no-op.
+        Calls ``on_done(result)`` on the main thread via ``GLib.idle_add``.
+        The callback is *not* invoked if ``cancel()`` was called before it
+        fires.
+        """
+        with self._lock:
+            if self.busy:
                 return
-            GLib.idle_add(lambda: on_done(result) if on_done else None, priority=GLib.PRIORITY_DEFAULT)
+            self._cancelled = False
 
-        self._conversion_thread = threading.Thread(target=_run, daemon=True)
-        self._conversion_thread.start()
+            params = dict(self._params)
+            params.update(overrides)
+
+            def _run():
+                result = self.convert_sync(input_path, output_path, **params)
+                if self._cancelled:
+                    return
+                GLib.idle_add(
+                    lambda: on_done(result) if on_done else None,
+                    priority=GLib.PRIORITY_DEFAULT,
+                )
+
+            self._thread = threading.Thread(target=_run, daemon=True)
+            self._thread.start()
 
     def cancel(self):
-        """Cancel the current conversion (marks the next callback as no-op)."""
+        """Mark the current (or next) conversion callback as no-op."""
         self._cancelled = True
 
-    def is_running(self) -> bool:
-        return self._conversion_thread is not None and self._conversion_thread.is_alive()
-
-    # --- Helpers ---
+    # ── helpers ─────────────────────────────────────────────────────
 
     @staticmethod
     def supported_input_extensions() -> list:
@@ -184,7 +204,6 @@ class Converter:
 
     @staticmethod
     def suggest_output_path(input_path: str, output_dir: str = "") -> str:
-        """Generate an .svg output path from an input image path."""
         inp = Path(input_path)
         if output_dir:
             return str(Path(output_dir) / f"{inp.stem}.svg")
