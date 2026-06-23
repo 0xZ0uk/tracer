@@ -151,7 +151,7 @@ class SettingsPanel(Adw.PreferencesPage):
         # Corner threshold
         self._add_spin(group, "corner_threshold", "Corner Threshold",
                         "Minimum angle (°) to detect a corner. Higher = fewer corners.",
-                        60.0, 0.0, 180.0, 0.5, digits=1)
+                        60, 0, 180, 1)
 
         # Filter speckle
         self._add_spin(group, "filter_speckle", "Filter Speckle",
@@ -171,7 +171,7 @@ class SettingsPanel(Adw.PreferencesPage):
         # Splice threshold
         self._add_spin(group, "splice_threshold", "Splice Threshold",
                         "Minimum angle (°) to splice a spline.",
-                        45.0, 0.0, 180.0, 0.5, digits=1)
+                        45, 0, 180, 1)
 
         # Path precision
         self._add_spin(group, "path_precision", "Path Precision",

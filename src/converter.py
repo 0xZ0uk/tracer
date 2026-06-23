@@ -40,7 +40,10 @@ class Converter:
     VALID_HIERARCHICAL = ["stacked", "cutout"]
 
     # Params that vtracer expects as int (Adw.SpinRow returns float)
-    INT_PARAMS = {"color_precision", "filter_speckle", "layer_difference", "path_precision", "max_iterations"}
+    # Only length_threshold is float per vtracer's pyi stubs
+    INT_PARAMS = {"color_precision", "filter_speckle", "layer_difference",
+                  "corner_threshold", "max_iterations", "splice_threshold",
+                  "path_precision"}
 
     PRESETS = {
         "custom": {},
@@ -49,7 +52,7 @@ class Converter:
             "mode": "polygon",
             "filter_speckle": 4,
             "color_precision": 6,
-            "corner_threshold": 60.0,
+            "corner_threshold": 60,
             "hierarchical": "cutout",
         },
         "poster": {
@@ -57,7 +60,7 @@ class Converter:
             "mode": "polygon",
             "filter_speckle": 6,
             "color_precision": 3,
-            "corner_threshold": 40.0,
+            "corner_threshold": 40,
             "hierarchical": "stacked",
             "layer_difference": 15,
         },
@@ -66,7 +69,7 @@ class Converter:
             "mode": "spline",
             "filter_speckle": 4,
             "color_precision": 6,
-            "corner_threshold": 60.0,
+            "corner_threshold": 60,
             "hierarchical": "stacked",
         },
     }
@@ -84,10 +87,10 @@ class Converter:
             "filter_speckle": 4,
             "color_precision": 6,
             "layer_difference": 0,
-            "corner_threshold": 60.0,
+            "corner_threshold": 60,
             "length_threshold": 3.5,
             "max_iterations": None,
-            "splice_threshold": 45.0,
+            "splice_threshold": 45,
             "path_precision": 8,
         }
 
