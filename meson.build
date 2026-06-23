@@ -28,6 +28,7 @@ configure_file(
   output: 'tracer',
   configuration: conf,
   install_dir: get_option('bindir'),
+  install_mode: 'rwxr-xr-x',
 )
 
 # Desktop file
