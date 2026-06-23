@@ -17,12 +17,8 @@ modules:
   - name: python3-vtracer
     buildsystem: simple
     build-commands:
-      # --find-links scans all local wheels; pip auto-selects the one
-      # compatible with the Python version in the GNOME runtime.
       - pip3 install --prefix=/app --no-index --find-links=/run/build/python3-vtracer vtracer
     sources:
-      # All manylinux x86_64 wheels for Python 3.8 through 3.14
-      # Pip picks the right one at build time.
       - type: file
         only-arches: [x86_64]
         url: https://files.pythonhosted.org/packages/fe/c0/4c2203fee7422618a4b74fa335444fc5514ff07ddac2a672da37d2b23016/vtracer-0.6.15-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
@@ -52,6 +48,16 @@ modules:
         url: https://files.pythonhosted.org/packages/58/27/36d031aeccbe40aeacd00bc1eccb240c744c321979dcfc3248ce85c7647a/vtracer-0.6.15-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
         sha256: fc61b871e7528df78751b76a129ef537a92c8e84187e0b9d122000bb54ad5df9
 
+  # ── Python dependency: scour (pure Python SVG optimizer) ──────────
+  - name: python3-scour
+    buildsystem: simple
+    build-commands:
+      - pip3 install --prefix=/app --no-build-isolation .
+    sources:
+      - type: archive
+        url: https://files.pythonhosted.org/packages/75/19/f519ef8aa2f379935a44212c5744e2b3a46173bf04e0110fb7f4af4028c9/scour-0.38.2.tar.gz
+        sha256: 6881ec26660c130c5ecd996ac6f6b03939dd574198f50773f2508b81a68e0daf
+
   # ── The app itself ────────────────────────────────────────────────
   - name: tracer
     buildsystem: meson
@@ -67,4 +73,4 @@ modules:
           - '*.pyc'
           - build
     post-install:
-      - python3 -c "import gi; gi.require_version('Gtk','4.0'); gi.require_version('Adw','1'); import vtracer; print('deps OK')"
+      - python3 -c "import gi; gi.require_version('Gtk','4.0'); gi.require_version('Adw','1'); import vtracer; import scour; print('deps OK')"

@@ -41,6 +41,7 @@ class SettingsPanel(Adw.PreferencesPage):
 
         self._build_mode_group()
         self._build_parameter_group()
+        self._build_post_group()
         self._set_preset("custom")
 
     # ── public API ──────────────────────────────────────────────────
@@ -54,6 +55,8 @@ class SettingsPanel(Adw.PreferencesPage):
                 vals[name] = text.get_string() if text else None
             elif isinstance(widget, Adw.SpinRow):
                 vals[name] = widget.get_value()
+            elif isinstance(widget, Adw.SwitchRow):
+                vals[name] = widget.get_active()
         # The preset row selects a preset rather than a direct param
         preset_name = self._read_preset()
         if preset_name:
@@ -70,6 +73,8 @@ class SettingsPanel(Adw.PreferencesPage):
                 self._set_combo_value(w, str(value))
             elif isinstance(w, Adw.SpinRow):
                 w.set_value(value)
+            elif isinstance(w, Adw.SwitchRow):
+                w.set_active(bool(value))
             elif name == "_preset":
                 self._set_preset(value)
 
@@ -189,6 +194,22 @@ class SettingsPanel(Adw.PreferencesPage):
         row.connect("notify::value", lambda *a: self.emit("params-changed"))
         group.add(row)
         self._param_widgets[name] = row
+
+    # ── post-processing group ───────────────────────────────────────
+
+    def _build_post_group(self):
+        group = Adw.PreferencesGroup()
+        group.set_title("Post-processing")
+        group.set_description("Optional cleanup after conversion")
+        self.add(group)
+
+        opt = Adw.SwitchRow()
+        opt.set_title("Optimize SVG")
+        opt.set_subtitle("Run scour optimizer to reduce file size")
+        opt.set_active(True)
+        opt.connect("notify::active", lambda *a: self.emit("params-changed"))
+        group.add(opt)
+        self._param_widgets["_optimize"] = opt
 
     # ── helpers ─────────────────────────────────────────────────────
 

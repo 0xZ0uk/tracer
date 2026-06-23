@@ -226,6 +226,7 @@ class VtracerWindow(Adw.ApplicationWindow):
         # Read current values from settings
         values = self._settings.get_values()
         values.pop("_preset", None)
+        self._do_optimize = values.pop("_optimize", False)
 
         self._converter.convert_async(
             self._current_image_path,
@@ -235,15 +236,43 @@ class VtracerWindow(Adw.ApplicationWindow):
         )
 
     def _on_conversion_done(self, result):
+        if result.success and self._do_optimize:
+            self._do_optimize = False
+            self._optimize_svg(result)
+        else:
+            self._conversion_finished(result)
+
+    def _optimize_svg(self, result):
+        self._status_label.set_text("Optimizing SVG…")
+        self._convert_btn.set_label("Optimizing…")
+
+        from optimizer import optimize_svg_file
+
+        ok, msg = optimize_svg_file(result.output_path)
+        if ok:
+            result.success = True
+            # Re-load preview with optimized SVG
+            self._preview.set_result_svg(result.output_path)
+            self._status_label.set_text(
+                f"{Path(result.output_path).name}  —  {msg}"
+            )
+        else:
+            result.error = msg
+        self._conversion_finished(result)
+
+    def _conversion_finished(self, result):
         self._convert_btn.set_sensitive(True)
         self._convert_btn.set_label("Convert → SVG")
 
         if result.success:
             self._last_svg_path = result.output_path
             self._preview.set_result_svg(result.output_path)
-            self._status_label.set_text(
-                f"Converted: {Path(result.output_path).name}"
-            )
+            if not self._status_label.get_text().startswith(
+                Path(result.output_path).name
+            ):
+                self._status_label.set_text(
+                    f"Converted: {Path(result.output_path).name}"
+                )
             self._show_toast("SVG saved successfully")
         else:
             self._status_label.set_text(f"Error: {result.error}")
