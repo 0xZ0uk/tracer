@@ -32,15 +32,14 @@ configure_file(
 
 # Desktop file
 install_data(
-  'data/com.github.z0uk.tracer.desktop.in',
+  'data/com.github.z0uk.tracer.desktop',
   install_dir: join_paths(get_option('datadir'), 'applications'),
-  rename: ['com.github.z0uk.tracer.desktop'],
 )
 
 desktop_utils = find_program('desktop-file-validate', required: false)
 if desktop_utils.found()
   test('Validate desktop file', desktop_utils,
-    args: [join_paths(meson.current_source_dir(), 'data', 'com.github.z0uk.tracer.desktop.in')],
+    args: [join_paths(meson.current_source_dir(), 'data', 'com.github.z0uk.tracer.desktop')],
   )
 endif
 
