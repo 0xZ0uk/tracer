@@ -160,8 +160,8 @@ class SettingsPanel(Adw.PreferencesPage):
 
         # Layer difference (gradient step)
         self._add_spin(group, "layer_difference", "Gradient Step",
-                        "Color difference between gradient layers (0-255). 0 = auto.",
-                        0, 0, 255, 1)
+                        "Color difference between gradient layers (1-255). Lower = more colors.",
+                        16, 1, 255, 1)
 
         # Length threshold (segment length)
         self._add_spin(group, "length_threshold", "Segment Length",
