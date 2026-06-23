@@ -101,7 +101,9 @@ class Converter:
         }
 
     def set_params(self, **kwargs):
-        self._params.update(kwargs)
+        """Update conversion parameters. Ignores internal keys (prefixed with _)."""
+        clean = {k: v for k, v in kwargs.items() if not k.startswith("_")}
+        self._params.update(clean)
 
     def get_params(self) -> dict:
         return dict(self._params)
