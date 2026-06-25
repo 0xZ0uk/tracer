@@ -83,7 +83,7 @@ class Converter:
         self._params = self._default_params()
         self._lock = threading.Lock()
         self._thread = None
-        self._cancelled = False
+        self._cancelled = threading.Event()
 
     # ── parameter management ────────────────────────────────────────
 
@@ -178,14 +178,14 @@ class Converter:
 
         def _emit(fn, *args):
             """Call *fn(args)* on the main thread, unless cancelled."""
-            if self._cancelled or fn is None:
+            if self._cancelled.is_set() or fn is None:
                 return
             GLib.idle_add(lambda: fn(*args), priority=GLib.PRIORITY_DEFAULT)
 
         with self._lock:
             if self.busy:
                 return
-            self._cancelled = False
+            self._cancelled.clear()
 
             params = dict(self._params)
             params.update(overrides)
@@ -194,7 +194,7 @@ class Converter:
                 if on_status:
                     _emit(on_status, "Converting…")
                 result = self.convert_sync(input_path, output_path, **params)
-                if self._cancelled:
+                if self._cancelled.is_set():
                     return
 
                 if result.success and optimize:
@@ -217,7 +217,7 @@ class Converter:
 
     def cancel(self):
         """Mark the current (or next) conversion callback as no-op."""
-        self._cancelled = True
+        self._cancelled.set()
 
     # ── helpers ─────────────────────────────────────────────────────
 

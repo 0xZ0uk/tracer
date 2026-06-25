@@ -144,20 +144,24 @@ class PreviewArea(Gtk.Box):
             handle = Rsvg.Handle.new_from_file(filepath)
             dims = handle.get_dimensions()
             if dims.width > 0 and dims.height > 0:
+                scale = min(
+                    self.SVG_PREVIEW_SIZE / dims.width,
+                    self.SVG_PREVIEW_SIZE / dims.height,
+                    1.0,
+                )
+                target_w = max(1, int(dims.width * scale))
+                target_h = max(1, int(dims.height * scale))
                 surf = cairo.ImageSurface(
                     cairo.Format.ARGB32,
-                    min(dims.width, self.SVG_PREVIEW_SIZE),
-                    min(dims.height, self.SVG_PREVIEW_SIZE),
+                    target_w,
+                    target_h,
                 )
                 cr = cairo.Context(surf)
-                scale_x = self.SVG_PREVIEW_SIZE / dims.width if dims.width > self.SVG_PREVIEW_SIZE else 1.0
-                scale_y = self.SVG_PREVIEW_SIZE / dims.height if dims.height > self.SVG_PREVIEW_SIZE else 1.0
-                scale = min(scale_x, scale_y)
                 cr.scale(scale, scale)
                 handle.render_cairo(cr)
 
                 # Convert cairo surface to GdkPixbuf and display
-                pixbuf = Gdk.pixbuf_get_from_surface(surf, 0, 0, surf.get_width(), surf.get_height())
+                pixbuf = Gdk.pixbuf_get_from_surface(surf, 0, 0, target_w, target_h)
                 pic = Gtk.Picture.new_for_pixbuf(pixbuf) if pixbuf else None
                 if pic:
                     pic.set_can_shrink(True)

@@ -291,7 +291,8 @@ class VtracerWindow(Adw.ApplicationWindow):
             self._show_error_toast(result.error)
 
     def _on_batch_clicked(self, _btn):
-        dialog = BatchDialog(self._converter, parent_window=self)
+        dialog = BatchDialog(self._converter, parent_window=self,
+                             toast_overlay=self._toast_overlay)
         dialog.present(self)
 
     # ── helpers ─────────────────────────────────────────────────────

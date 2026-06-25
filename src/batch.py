@@ -11,7 +11,7 @@ __all__ = ["BatchDialog"]
 class BatchDialog(Adw.Dialog):
     """Dialog for batch-converting all images in a folder."""
 
-    def __init__(self, converter, parent_window=None, **kwargs):
+    def __init__(self, converter, parent_window=None, toast_overlay=None, **kwargs):
         super().__init__(**kwargs)
         self.set_title("Batch Convert")
         self.set_content_width(600)
@@ -19,6 +19,7 @@ class BatchDialog(Adw.Dialog):
 
         self._converter = converter
         self._parent = parent_window
+        self._toast_overlay = toast_overlay
         self._input_dir = None
         self._output_dir = None
         self._file_list = []
@@ -234,10 +235,5 @@ class BatchDialog(Adw.Dialog):
         self._status_label.set_text(f"Done — {self._processed} / {self._total} converted")
 
         toast = Adw.Toast.new(f"Batch complete — {self._processed} SVG files created")
-        # Find a ToastOverlay parent if available
-        parent = self.get_parent()
-        while parent is not None:
-            if isinstance(parent, Adw.ToastOverlay):
-                parent.add_toast(toast)
-                break
-            parent = parent.get_parent()
+        if self._toast_overlay is not None:
+            self._toast_overlay.add_toast(toast)
